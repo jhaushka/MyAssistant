@@ -4,12 +4,10 @@ import datetime
 import wikipedia
 import requests
 import os
-import random
+import platform
 from transformers import pipeline
 from gtts import gTTS
 from io import BytesIO
-import base64
-import platform
 
 # ========== Optional YouTube (Selenium) ==========
 USE_SELENIUM = platform.system() == "Windows"
@@ -27,9 +25,8 @@ for filename in ["notes.txt", "reminders.txt"]:
 
 # ========== Setup ==========
 st.set_page_config(page_title="Anushka's Assistant", layout="centered")
-st.title(" Your Personal Voice Assistant")
+st.title("🧠 Your Personal Voice Assistant")
 
-# ========== State ==========
 if "chat_log" not in st.session_state:
     st.session_state.chat_log = []
 if "greeted" not in st.session_state:
@@ -56,7 +53,7 @@ def listen():
         try:
             audio = r.listen(source, timeout=10, phrase_time_limit=7)
         except sr.WaitTimeoutError:
-            st.warning(" Listening timed out.")
+            st.warning("⏰ Listening timed out.")
             return ""
     try:
         command = r.recognize_google(audio)
@@ -69,15 +66,21 @@ def listen():
         speak("Could not connect to the speech service.")
     return ""
 
+# ========== Chatbot Setup ==========
+try:
+    chatbot = pipeline("text-generation", model="distilgpt2")
+except:
+    chatbot = None
+    def chat_with_local_gpt(prompt):
+        speak("Chat feature is not available.")
+else:
+    def chat_with_local_gpt(prompt):
+        context = f"Human: {prompt}\nAI:"
+        result = chatbot(context, max_new_tokens=80, pad_token_id=50256)
+        response = result[0]['generated_text'].split("AI:")[-1].strip()
+        speak(response)
+
 # ========== Features ==========
-chatbot = pipeline("text-generation", model="microsoft/DialoGPT-medium")
-
-def chat_with_local_gpt(prompt):
-    context = f"Human: {prompt}\nAI:"
-    result = chatbot(context, max_new_tokens=80, pad_token_id=50256)
-    response = result[0]['generated_text'].split("AI:")[-1].strip()
-    speak(response)
-
 def get_weather(city):
     api_key = "a70f063f4b2d5483416a59e9bb2d64be"
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
@@ -126,7 +129,7 @@ def clear_reminders():
     speak("All reminders cleared.")
 
 def execute_system_command(command):
-    speak("This feature only works locally, not on the web.")
+    speak("This feature only works in the desktop version.")
 
 # ========== Greeting ==========
 if not st.session_state.greeted:
@@ -134,12 +137,12 @@ if not st.session_state.greeted:
     speak(f"Hello Anushka, welcome back! Today is {today}.")
     st.markdown("### 💡 Try saying:")
     st.markdown("""
-    - 🎵 **Play [song]**  
+    - 🎵 **Play [song] (local only)**  
     - 📝 **Take a note**, **Read notes**  
     - 🔔 **Remind me to...**, **Show reminders**  
     - 🌤️ **Weather in Delhi**  
     - 📚 **Search Wikipedia**  
-    - 💬 **Chat with AI**  
+    - 💬 **Chat with AI (local only)**  
     """)
     st.session_state.greeted = True
 
@@ -157,7 +160,7 @@ with tab1:
                     speak(f"Playing {song} on YouTube.")
                     Music().play_music(song)
                 else:
-                    speak("Music playback only works in local version.")
+                    speak("Music playback works only on desktop.")
         elif "note" in command:
             take_note()
         elif "read notes" in command:
