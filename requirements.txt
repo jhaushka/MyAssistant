@@ -1,10 +1,6 @@
 streamlit
-pyttsx3
+gtts
 speechrecognition
-pyaudio
 transformers
 requests
 wikipedia
-randfacts
-selenium
-webdriver-manager
