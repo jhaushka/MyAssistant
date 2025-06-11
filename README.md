@@ -15,7 +15,7 @@ A personal voice assistant built using Streamlit, SpeechRecognition, Transformer
 
 ## Try It Live
 
-🔗 [Click here to launch](https://share.streamlit.io/your-username/voice-assistant/main/app.py)
+🔗 [Click here to launch](https://myassistant-kpbxff3tai9hmdvygcqfox.streamlit.app/)
 
 ---
 
